@@ -9,7 +9,7 @@ share: false
 ---
 
 <figure>
-    <a href="/images/image_pyramids/00345u_color_2.png" alt="image"><img src="/images/image_pyramids/00345u_color_2_preview.png" alt="image"></a>
+    <a href="/images/image_pyramids/00345u_color_2_preview.png" alt="image"><img src="/images/image_pyramids/00345u_color_2_preview.png" alt="image"></a>
     <figcaption>Photo credits to the Library of Congress and Sergey Prokudin-Gorskii.</figcaption>
 </figure>
 
@@ -63,11 +63,21 @@ else:
 Since multi-scale alignment calls the single-scale process, the evaluation function is the same. The run time of this algorithm was `12.653 seconds` over the average of 10 runs. Now, here are some more photos for your enjoyment.
 
 <figure>
-    <a href="/images/image_pyramids/factory_color.png" alt="image"><img src="/images/image_pyramids/factory_color_preview.png" alt="image"></a>
-    <a href="/images/image_pyramids/church_color.png" alt="image"><img src="/images/image_pyramids/church_color_preview.png" alt="image"></a>
-    <a href="/images/image_pyramids/guy_color.png" alt="image"><img src="/images/image_pyramids/guy_color_preview.png" alt="image"></a>
-    <a href="/images/image_pyramids/00211u_color_2.png" alt="image"><img src="/images/image_pyramids/00211u_color_2_preview.png" alt="image"></a>
-    <a href="/images/image_pyramids/00093u_color_2.png" alt="image"><img src="/images/image_pyramids/00093u_color_2_preview.png" alt="image"></a>
+    <a href="/images/image_pyramids/factory_color_preview.png" alt="image">
+        <img src="/images/image_pyramids/factory_color_preview.png" alt="image">
+    </a>
+    <a href="/images/image_pyramids/church_color_preview.png" alt="image">
+        <img src="/images/image_pyramids/church_color_preview.png" alt="image">
+    </a>
+    <a href="/images/image_pyramids/guy_color_preview.png" alt="image">
+        <img src="/images/image_pyramids/guy_color_preview.png" alt="image">
+    </a>
+    <a href="/images/image_pyramids/00211u_color_2_preview.png" alt="image">
+        <img src="/images/image_pyramids/00211u_color_2_preview.png" alt="image">
+    </a>
+    <a href="/images/image_pyramids/00093u_color_2_preview.png" alt="image">
+        <img src="/images/image_pyramids/00093u_color_2_preview.png" alt="image">
+    </a>
     <figcaption>Multi-scale aligned glass plate negatives.</figcaption>
 </figure>
 
