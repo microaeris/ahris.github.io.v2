@@ -1,0 +1,19 @@
+# Site navigation links
+
+- title: About
+  url: /about/
+
+- title: Projects
+  url: /projects/
+
+- title: Blog
+  url: /blog/
+
+- title: Art
+  url: https://saltyalice.tumblr.com
+
+- title: Theme Setup
+  url: /theme-setup/
+
+- title: Search
+  url: /search/
