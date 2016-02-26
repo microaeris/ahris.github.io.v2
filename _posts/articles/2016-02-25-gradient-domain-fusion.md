@@ -85,7 +85,39 @@ The source gradient is simply the gradient in all four directions. The equation 
 
 The results of Poisson Blending can be seen below
 
+<figure class="half">
+    <a href="/images/gradient_domain_fusion/poisson/shibablack.jpg" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/shibablack.jpg" alt="image">
+    </a>
+    <a href="/images/gradient_domain_fusion/poisson/SR71_crew.jpg" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/SR71_crew.jpg" alt="image">
+    </a>
+    <a href="/images/gradient_domain_fusion/poisson/blackbird_overlay.png" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/blackbird_overlay.png" alt="image">
+    </a>
+    <a href="/images/gradient_domain_fusion/poisson/blackbird.png" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/blackbird.png" alt="image">
+    </a>
+    <figcaption>ADD CAPTION</figcaption>
+</figure>
+
 However, Poisson Blending didn't quite always work.
+
+<figure class="half">
+    <a href="/images/gradient_domain_fusion/poisson/shibablack.jpg" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/shibablack.jpg" alt="image">
+    </a>
+    <a href="/images/gradient_domain_fusion/poisson/SR71_crew.jpg" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/SR71_crew.jpg" alt="image">
+    </a>
+    <a href="/images/gradient_domain_fusion/poisson/blackbird_overlay.png" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/blackbird_overlay.png" alt="image">
+    </a>
+    <a href="/images/gradient_domain_fusion/poisson/blackbird.png" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/blackbird.png" alt="image">
+    </a>
+    <figcaption>ADD CAPTION</figcaption>
+</figure>
 
 ## Mixed Gradients
 
@@ -173,7 +205,7 @@ solve Af = b similarly to above to calculate f
 overlay the complement of e onto f to achieve an outline effect
 {% endhighlight %}
 
-The results are below.
+On average, the algorithm took `19.215 seconds` to run on each image. The results are below.
 
 <figure class="thirds">
     <img src="/images/gradient_domain_fusion/baseballwow.png" alt="image">
@@ -196,4 +228,4 @@ The results are below.
     </figcaption>
 </figure>
 
-In the last image of Hideo Kojima, the lines are relatively thick compares to the his facial features, so it makes his face look weird. Faces require a lot more attention to detail and finer lines. If we were to improve our algorithm, we should resize the line width according to the image size. This would fix the issues of harsh lines on the small picture of Kojima.
+In the last image of Hideo Kojima, the lines are relatively thick compares to his facial features, so it obstructs his face and makes him unrecognizable. Faces require a lot more attention to detail and finer lines. If we were to improve our algorithm, we should resize the line width according to the image size. This would fix the issues of harsh lines on the small picture of Kojima.
