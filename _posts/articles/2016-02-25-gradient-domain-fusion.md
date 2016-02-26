@@ -9,17 +9,40 @@ share: false
 ---
 
 <figure>
-    <a href="/images/image_pyramids/00345u_color_2_preview.png" alt="image"><img src="/images/image_pyramids/00345u_color_2_preview.png" alt="image"></a>
-    <figcaption>Photo credits to the Library of Congress and Sergey Prokudin-Gorskii.</figcaption>
+    <img src="/images/gradient_domain_fusion/sf-npr-big.png" alt="image">
+    <figcaption>
+        NPR Rendering. Golden Gate Bridge in San Francisco, California.
+    </figcaption>
 </figure>
 
-Gradient-domain image processing is a technique with numerous applications. This project explores image blending and non-photo realistic rendering. Given an input image, gradient domain image processing first finds the gradient of the given image, and then solves for a new image using a system of equations and a set of constraints. The constraints define what problem we are solving. In this project, we will explore a simple toy problem, Poisson blending, and non-photo realistic rendering. The code for can be found [here](https://github.com/jmecom/gradient-domain-fusion). Jordan Mecom and I worked together on this project.
+Gradient-domain image processing is a technique with numerous applications. This project explores image blending and non-photo realistic rendering. Given an input image, gradient domain image processing first finds the gradient of the given image, and then solves for a new image using a system of equations. The equations act as constraints, defining what problem is solved. In this project, we will explore a simple toy problem, Poisson blending, and non-photo realistic rendering. The code for can be found [here](https://github.com/jmecom/gradient-domain-fusion). Jordan Mecom and I worked together on this project.
 
 ## Toy Example
 
 To get started with linear program solvers in MATLAB, we got our feet wet with a little program that solves for the original image. The constraints are given as the x and y directional gradients of the original image and a single pixel intensity as the seeding value. This solver should return the original image, which only has one channel. We evaluated our final image with an error value, which was the sum of square differences between the original image and the resulting image.
 
-The gradients define the change in intensity from a pixel to its neighboring pixels, so with one pixel predefined, there can only be one resulting image. We built the `A` constraint matrix with two constraints per pixel - a constraint for the gradient in the x-direction and one for the y-direction. There was one additional constraint at the end to specify the intensity of one seeding pixel. The `b` matrix contains the actual value of the image gradients and the seeding intensity. Our objective function was to minimize the error value. We simply solved for these constraints using `A\b` and voila, here is our resulting image:
+The gradients define the change in intensity from a pixel to its neighboring pixels, so with one pixel predefined, there can only be one resulting image. We built the `A` constraint matrix with two constraints per pixel - a constraint for the gradient in the x-direction and one for the y-direction. There was one additional constraint at the end to specify the intensity of one seeding pixel. The `b` matrix contains the actual value of the image gradients and the seeding intensity. The algorithm for toy reconstruction is:
+{% highlight python %}
+let img be an input
+
+for each pixel (y,x) in img
+    # Objective 1
+    A(e, y, x+1) = 1;
+    A(e, y, x)   = -1;
+    b(e) = source image x gradient
+    e += 1;
+
+    # Objective 2
+    A(e, y+1, x) = 1;
+    A(e, y, x)   = -1;
+    b(e) = source image y gradient
+
+# Objective 3
+A(e, 1, 1) = 1
+b(e) = img(1,1)
+{% endhighlight %}
+
+Our objective function was to minimize the error value. We simply solved for these constraints using `A\b`. The result is below:
 
 <center>
     <figure>
@@ -30,7 +53,7 @@ The gradients define the change in intensity from a pixel to its neighboring pix
     </figure>
 </center>
 
-To really understand what was going on, we tried messing with the various parameters in the linear program. The first image is what happens when we don't use y gradient constraints (error of 151.2625), the second doesn't use x gradient constraints (error of 159.6582), and the last gif shows the image solved with various seeding intensities. The intensities start at 1, resulting in the darkest image, to .05, which results in the lightest image. The error values were were largest around 1 and .05 and were smallest around .5. This is because the true intensity of the first pixel of the image is `0.4745`.
+To really understand what was going on, we messed with the various parameters in the linear program. The first image is what happens when we don't use y gradient constraints (error of 151.2625), the second doesn't use x gradient constraints (error of 159.6582), and the last gif shows the image solved with various starting intensities. The intensities start at 1, resulting in the darkest image, to .05, which results in the lightest image. The error values were largest around 1 and .05 and were smallest around .5. This is because the true intensity of the first pixel of the image is `0.4745`.
 
 <center>
     <figure>
@@ -44,7 +67,7 @@ At first, we tried to directly edit the values of the sparse matrix in each loop
 
 ## Poisson Blending
 
-The idea behind Poisson Blending is to take two images - a source and a target - and blend the source onto the target image in a convincing way. The edges of the blended image tries to match the color of the background as close as possible while the interior pixels are trying to preserve the original gradients as close as possible. This is accomplished by solving for the new image using a Poisson equation, defined as follows:
+The idea behind Poisson blending is to take two images - a source and a target - and blend the source onto the target image in a convincing way. The edges of the source image tries to match the color of the target as close as possible while the interior pixels try to preserve the original gradients as close as possible. This is accomplished by solving for the new image using a Poisson equation, defined as follows:
 
 <figure>
     <img src="/images/gradient_domain_fusion/poisson_eq.png" alt="image">
@@ -53,9 +76,9 @@ The idea behind Poisson Blending is to take two images - a source and a target -
     </figcaption>
 </figure>
 
-To implement Poisson Blending, one can express the problem as a linear program and solve the equation `Av = b` where `v` is the vector to be solved for. The vectors `v` and `b` are the size of the pixel count of the background image and `A` is pixel count by pixel count in size.
+To implement Poisson blending, one can express the problem as a linear program and solve the equation `Av = b` where `v` is the vector to be solved. The vectors `v` and `b` are the size of the pixel count of the background image and `A` is pixel count by pixel count in size.
 
-The algorithm we implemented is shown below, in pseudocode
+The algorithm we implemented is shown below, in pseudocode:
 
 {% highlight python %}
 let source, target, and mask be inputs
@@ -64,44 +87,76 @@ for each channel
   loop over pixels p in target
     if p is outside of the mask,
       # Just keep the background in this case.
-      A(p) = 1
+      A(e,p) = 1
       b(e) = target(y,x)  # e indexes the current equation.
 
     else,
-      A(p) = 4
+      A(e,p) = 4
       b(e) = source gradient at p
 
       for each neighbor n of p
         if n is inside mask,
           b(e) += target(n) # Handles second sum in Poisson equation
         else,
-          A(n) = -1         # Handles first sum in Poisson equation
+          A(e,n) = -1         # Handles first sum in Poisson equation
   solve Av = b
 
 combine the channels and return the blended image
 {% endhighlight %}
 
-The source gradient is simply the gradient in all four directions. The equation is `source(y,x)*4 + (source(y-1,x) + source(y+1,x) + source(y,x+1) + source(y,x-1))`, if pixel `p` is at `(y,x)`. We set `A(y,x) = 4` because one row of `A` handles each gradient direction. It's possible to split the equations out to one per row, but this was easier. The `A(n) = -1` terms correspond to the `v_i - v_j` term in the first sum of the Poisson equation, which is only set if the `jth` pixel is in the mask. Otherwise, `v_i - t_j` is used, and so we add the target to b.
+The source gradient is simply the gradient in all four directions. The equation is `source(y,x)*4 + (source(y-1,x) + source(y+1,x) + source(y,x+1) + source(y,x-1))`, if pixel `p` is at `(y,x)`. We set `A(y,x) = 4` because one row of `A` handles each gradient direction. It's possible to split the equations out to one per row, but this was easier. The `A(n) = -1` terms correspond to the `v_i - v_j` term in the first sum of the Poisson equation, which is only set if the `jth` pixel is in the mask. Otherwise, `v_i - t_j` is used, and so we add the target to `b`.
 
 The results of Poisson Blending can be seen below
 
 <figure class="half">
-    <a href="/images/gradient_domain_fusion/poisson/shibablack.jpg" alt="image">
-        <img src="/images/gradient_domain_fusion/poisson/shibablack.jpg" alt="image">
+    <a href="/images/gradient_domain_fusion/poisson/arial.jpg" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/arial_preview.png" alt="image">
     </a>
-    <a href="/images/gradient_domain_fusion/poisson/SR71_crew.jpg" alt="image">
-        <img src="/images/gradient_domain_fusion/poisson/SR71_crew.jpg" alt="image">
+    <a href="/images/gradient_domain_fusion/poisson/ocean.jpg" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/ocean.jpg" alt="image">
     </a>
-    <a href="/images/gradient_domain_fusion/poisson/blackbird_overlay.png" alt="image">
-        <img src="/images/gradient_domain_fusion/poisson/blackbird_overlay.png" alt="image">
+    <a href="/images/gradient_domain_fusion/poisson/ocean_overlay.png" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/ocean_overlay.png" alt="image">
     </a>
-    <a href="/images/gradient_domain_fusion/poisson/blackbird.png" alt="image">
-        <img src="/images/gradient_domain_fusion/poisson/blackbird.png" alt="image">
+    <a href="/images/gradient_domain_fusion/poisson/ocean.png" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/ocean.png" alt="image">
     </a>
-    <figcaption>ADD CAPTION</figcaption>
+    <figcaption>Clockwise: source, target, Poisson, naive</figcaption>
 </figure>
 
-However, Poisson Blending didn't quite always work.
+<figure class="half">
+    <a href="/images/gradient_domain_fusion/poisson/duck2.jpg" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/duck2_preview.png" alt="image">
+    </a>
+    <a href="/images/gradient_domain_fusion/poisson/canyon.jpg" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/canyon_preview.png" alt="image">
+    </a>
+    <a href="/images/gradient_domain_fusion/poisson/canyon_overlay.png" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/canyon_overlay.png" alt="image">
+    </a>
+    <a href="/images/gradient_domain_fusion/poisson/canyon.png" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/canyon_prewview.png" alt="image">
+    </a>
+    <figcaption>Clockwise: source, target, Poisson, naive</figcaption>
+</figure>
+
+<figure class="half">
+    <a href="/images/gradient_domain_fusion/poisson/jar.jpg" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/jar.jpg" alt="image">
+    </a>
+    <a href="/images/gradient_domain_fusion/poisson/sand.jpg" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/sand.jpg" alt="image">
+    </a>
+    <a href="/images/gradient_domain_fusion/poisson/sand_overlay.png" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/sand_overlay.png" alt="image">
+    </a>
+    <a href="/images/gradient_domain_fusion/poisson/sand.png" alt="image">
+        <img src="/images/gradient_domain_fusion/poisson/sand.png" alt="image">
+    </a>
+    <figcaption>Clockwise: source, target, Poisson, naive</figcaption>
+</figure>
+
+However, Poisson blending didn't quite always work. Discoloration occurs in the image below of the dog blended with the picture of SR71 Blackbird pilots. The algorithm tends to work best for pictures where the source can pick up colors from the target and still look plausible. For example, pictures of a bear blended into water, a sun into sky, or a rainbow into clouds look good because picking up colors from the target helps the blending process. However, picking up colors when pasting a dog onto a runway doesn't produce as good of an image.
 
 <figure class="half">
     <a href="/images/gradient_domain_fusion/poisson/shibablack.jpg" alt="image">
@@ -116,14 +171,12 @@ However, Poisson Blending didn't quite always work.
     <a href="/images/gradient_domain_fusion/poisson/blackbird.png" alt="image">
         <img src="/images/gradient_domain_fusion/poisson/blackbird.png" alt="image">
     </a>
-    <figcaption>ADD CAPTION</figcaption>
+    <figcaption>Clockwise: source, target, Poisson, naive</figcaption>
 </figure>
 
 ## Mixed Gradients
 
-Mixed gradients is a technique for image blending that is essentially the same as Poisson Blending, except instead of always using the source gradient, the `max(abs(source gradient), abs(target gradient))` is used. Mixed gradients notably outperform Poisson blending in some cases, as shown below.
-
-This is because...
+Mixed gradients is a technique for image blending that is essentially the same as Poisson Blending, except instead of always using the source gradient, the `max(abs(source gradient), abs(target gradient))` is used to select either the source or target gradient. Mixed gradients notably outperform Poisson blending in some cases, as shown below.
 
 <figure class="half">
     <a href="/images/gradient_domain_fusion/washu.jpg" alt="image">
@@ -144,7 +197,7 @@ This is because...
     <a href="/images/gradient_domain_fusion/washu_poisson.png" alt="image">
         <img src="/images/gradient_domain_fusion/washu_poisson.png" alt="image">
     </a>
-    <figcaption>ADD CAPTION</figcaption>
+    <figcaption>(Top Left) Original target. (Top Right) Original source. (Mid Left) Mask. (Mid Right) Naive. (Bottom Left) Mixed. (Bottom Right) Poisson. </figcaption>
 </figure>
 
 <figure class="half">
@@ -166,8 +219,10 @@ This is because...
     <a href="/images/gradient_domain_fusion/text_poisson.png" alt="image">
         <img src="/images/gradient_domain_fusion/text_poisson.png" alt="image">
     </a>
-    <figcaption>ADD CAPTION</figcaption>
+    <figcaption>(Top Left) Original target. (Top Right) Original source. (Mid Left) Mask. (Mid Right) Naive. (Bottom Left) Mixed. (Bottom Right) Poisson. </figcaption>
 </figure>
+
+In both images, the blurriness around the mask is removed or reduced with mixed gradients. In particular, using mixed gradients is a good idea when the source image is partly transparent. The algorithm chooses whichever ''source or destination structure is the more salient at each location'' (Perez, et al.) and achieves a better quality output.
 
 ## Extra Credit
 
